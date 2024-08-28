@@ -1,0 +1,434 @@
+zabbix_export:
+  version: '6.0'
+  date: '2024-08-28T07:33:11Z'
+  groups:
+    - uuid: 5fb19782fea5443ca1d9cce4100dc0c1
+      name: Templates/Users
+  templates:
+    - uuid: 9af5050090ef401eb62b1a93fcc09584
+      template: 'Ubiquiti AF60LR Radio'
+      name: 'Ubiquiti AF60LR Radio'
+      groups:
+        - name: Templates/Users
+      items:
+        - uuid: cd25293ec8624f8587797253185e3b75
+          name: Hostname
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.5.0
+          key: af60lr.hostname
+          delay: 12h
+          trends: '0'
+          value_type: TEXT
+        - uuid: a29a002dc6eb4f0f9c81d50910bfa9de
+          name: 'Channel Bandwidth'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.41112.1.11.1.1.3.1
+          key: af60lr.radio.bandwidth
+          delay: 1h
+          units: '!MHz'
+        - uuid: 1de1c52f5776479386616b38093b0ab3
+          name: Frequency
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.41112.1.11.1.1.2.1
+          key: af60lr.radio.frequency
+          delay: 5m
+          units: '!MHz'
+          tags:
+            - tag: af60lr
+              value: frequency
+        - uuid: 5802e28e8a9f4efc82d79c49e87cbd6a
+          name: 'GPS Satellites Count'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.41112.1.11.1.4.8.1
+          key: af60lr.radio.gps
+          delay: 10m
+        - uuid: d2d79d301b1446e3bff72cb0e145d13c
+          name: 'AF60LR: ICMP ping'
+          type: SIMPLE
+          key: icmpping
+          history: 7d
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: network
+          triggers:
+            - uuid: 8caf07874d19451aa9adf02a803f899a
+              expression: 'max(/Ubiquiti AF60LR Radio/icmpping,#3)=0'
+              name: 'ICMP: Unavailable by ICMP ping'
+              priority: HIGH
+              description: 'Last three attempts returned timeout.  Please check device connectivity.'
+              tags:
+                - tag: scope
+                  value: availability
+        - uuid: 850ff4d294be43638d29a2e2ce6d06cb
+          name: 'AF60LR: ICMP loss'
+          type: SIMPLE
+          key: icmppingloss
+          history: 7d
+          value_type: FLOAT
+          units: '%'
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: network
+          triggers:
+            - uuid: b8c18a0ce6244ca6866acd7bee37519e
+              expression: 'min(/Ubiquiti AF60LR Radio/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/Ubiquiti AF60LR Radio/icmppingloss,5m)<100'
+              name: 'ICMP: High ICMP ping loss'
+              opdata: 'Loss: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              dependencies:
+                - name: 'ICMP: Unavailable by ICMP ping'
+                  expression: 'max(/Ubiquiti AF60LR Radio/icmpping,#3)=0'
+              tags:
+                - tag: scope
+                  value: availability
+                - tag: scope
+                  value: performance
+        - uuid: 9d34f20d74ec41c8b5b5658415b237da
+          name: 'AF60LR: ICMP response time'
+          type: SIMPLE
+          key: icmppingsec
+          history: 7d
+          value_type: FLOAT
+          units: s
+          tags:
+            - tag: component
+              value: health
+            - tag: component
+              value: network
+          triggers:
+            - uuid: 6fbb169fb2df46c693574b49e3909e39
+              expression: 'avg(/Ubiquiti AF60LR Radio/icmppingsec,5m)>{$ICMP_RESPONSE_TIME_WARN}'
+              name: 'ICMP: High ICMP ping response time'
+              opdata: 'Value: {ITEM.LASTVALUE1}'
+              priority: WARNING
+              dependencies:
+                - name: 'ICMP: High ICMP ping loss'
+                  expression: 'min(/Ubiquiti AF60LR Radio/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/Ubiquiti AF60LR Radio/icmppingloss,5m)<100'
+                - name: 'ICMP: Unavailable by ICMP ping'
+                  expression: 'max(/Ubiquiti AF60LR Radio/icmpping,#3)=0'
+              tags:
+                - tag: scope
+                  value: availability
+                - tag: scope
+                  value: performance
+        - uuid: 3a56aa20878547bcb326e7e3c8843e46
+          name: 'System Contact'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.4.0
+          key: ubiquiti.system.contact
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: CONTACT
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+        - uuid: 9627dc583a2e495c9690de7826c64f56
+          name: 'System Location'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.6.0
+          key: ubiquiti.system.location
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: LOCATION
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+        - uuid: 0633621798084501bd83e0fac53a0763
+          name: 'MAC Address'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.41112.1.11.1.2.1.1
+          key: ubiquiti.system.mac
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: MACADDRESS_A
+          preprocessing:
+            - type: TRIM
+              parameters:
+                - ' '
+            - type: STR_REPLACE
+              parameters:
+                - ' '
+                - ':'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+        - uuid: 657fafa611d3424cad03469e486ec0b8
+          name: 'Serial Number'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.41112.1.11.1.2.1.1
+          key: ubiquiti.system.serial
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: SERIALNO_A
+          preprocessing:
+            - type: STR_REPLACE
+              parameters:
+                - ' '
+                - ''
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+      discovery_rules:
+        - uuid: 795fef5b589044ddaed80372933b2a58
+          name: Radio
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#IFMAC},.1.3.6.1.4.1.41112.1.11.1.3.1.1]'
+          key: af60lr.radio
+          delay: 1d
+          lifetime: 7d
+          item_prototypes:
+            - uuid: a6beccadd7374a0f98dc4e334d626795
+              name: 'Capacity RX'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.11.1.3.1.8.{#SNMPINDEX}'
+              key: 'af60lr.radio.[{#SNMPINDEX}.capacity.rx]'
+              units: bps
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '1000'
+            - uuid: 3be4b1c793f0468c82cfacac06cdceef
+              name: 'Capacity TX'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.11.1.3.1.7.{#SNMPINDEX}'
+              key: 'af60lr.radio.[{#SNMPINDEX}.capacity.tx]'
+              units: bps
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '1000'
+            - uuid: 59301e8c08e74625abff8b5db73ab6dd
+              name: 'Signal Remote'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.11.1.3.1.18.{#SNMPINDEX}'
+              key: 'af60lr.radio.[{#SNMPINDEX}.signal.remote]'
+              value_type: FLOAT
+              units: dBm
+            - uuid: 0bc6187683094a388bce7144fa1808f0
+              name: Signal
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.11.1.3.1.3.{#SNMPINDEX}'
+              key: 'af60lr.radio.[{#SNMPINDEX}.signal]'
+              value_type: FLOAT
+              units: dBm
+            - uuid: 088648cef4884133bdd325e524ca8ce8
+              name: SNR
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.11.1.3.1.4.{#SNMPINDEX}'
+              key: 'af60lr.radio.[{#SNMPINDEX}.snr]'
+              value_type: FLOAT
+              units: dB
+            - uuid: e04027a8d2124d9393307ca0b5604df4
+              name: 'Throughput RX'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.11.1.3.1.10.{#SNMPINDEX}'
+              key: 'af60lr.radio.[{#SNMPINDEX}.throughput.rx]'
+              units: bps
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+            - uuid: 2e7e1d7dace8441eb54d04a58136456c
+              name: 'Throughput TX'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.11.1.3.1.9.{#SNMPINDEX}'
+              key: 'af60lr.radio.[{#SNMPINDEX}.throughput.tx]'
+              units: bps
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+            - uuid: 6134e11a3dc747c8979b6abdab374c4a
+              name: 'Connection Time'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.11.1.3.1.17.{#SNMPINDEX}'
+              key: 'af60lr.radio.[{#SNMPINDEX}.uptime]'
+              units: uptime
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.01'
+          trigger_prototypes:
+            - uuid: 13972a4b9a65486abfe04e98a5ce85c7
+              expression: '(last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.signal])<-68 or last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.signal.remote])<-68)'
+              name: 'TX or RX Signal lower than -68dBm'
+              priority: WARNING
+              dependencies:
+                - name: 'ICMP: Unavailable by ICMP ping'
+                  expression: 'max(/Ubiquiti AF60LR Radio/icmpping,#3)=0'
+              tags:
+                - tag: scope
+                  value: performance
+            - uuid: d43f291f300542b9a4615b56ea9045c9
+              expression: '(last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.signal])<-71 or last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.signal.remote])<-71)'
+              name: 'TX or RX Signal lower than -71dBm'
+              priority: HIGH
+              dependencies:
+                - name: 'ICMP: Unavailable by ICMP ping'
+                  expression: 'max(/Ubiquiti AF60LR Radio/icmpping,#3)=0'
+              tags:
+                - tag: scope
+                  value: performance
+            - uuid: ca4edc80a2804cf89afab48ddef84859
+              expression: '(last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.throughput.rx])/last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.capacity.rx]))>0.65 or (last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.throughput.tx])/last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.capacity.tx]))>0.65'
+              name: 'Utilization TX or RX channel more than 65%'
+              priority: INFO
+              dependencies:
+                - name: 'ICMP: Unavailable by ICMP ping'
+                  expression: 'max(/Ubiquiti AF60LR Radio/icmpping,#3)=0'
+              tags:
+                - tag: scope
+                  value: performance
+            - uuid: 3eed85de99d2482a88a1eb9a8a97cdce
+              expression: '(last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.throughput.rx])/last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.capacity.rx]))>0.75 or (last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.throughput.tx])/last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.capacity.tx]))>0.75'
+              name: 'Utilization TX or RX channel more than 75%'
+              priority: WARNING
+              dependencies:
+                - name: 'ICMP: Unavailable by ICMP ping'
+                  expression: 'max(/Ubiquiti AF60LR Radio/icmpping,#3)=0'
+              tags:
+                - tag: scope
+                  value: performance
+            - uuid: 83af1096ddf7456f8b086d2d0913ea7c
+              expression: '(last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.throughput.rx])/last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.capacity.rx]))>0.85 or (last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.throughput.tx])/last(/Ubiquiti AF60LR Radio/af60lr.radio.[{#SNMPINDEX}.capacity.tx]))>0.85'
+              name: 'Utilization TX or RX channel more than 85%'
+              priority: HIGH
+              dependencies:
+                - name: 'ICMP: Unavailable by ICMP ping'
+                  expression: 'max(/Ubiquiti AF60LR Radio/icmpping,#3)=0'
+              tags:
+                - tag: scope
+                  value: performance
+          graph_prototypes:
+            - uuid: 95d1539ea9974a4ab5fc74b910aa189e
+              name: 'AF60 {#IFMAC} Connection Time'
+              graph_items:
+                - drawtype: BOLD_LINE
+                  color: 00FF00
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.uptime]'
+            - uuid: d17c8fc5734e440a8f3709bc2f737b78
+              name: 'AF60 {#IFMAC} Signal'
+              graph_items:
+                - drawtype: BOLD_LINE
+                  color: 00FF00
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.signal]'
+                - sortorder: '1'
+                  color: FF0000
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.signal.remote]'
+            - uuid: ee5ee3c8dfa84dfa96cf962f671c874f
+              name: 'AF60 {#IFMAC} SNR to Signal Level'
+              graph_items:
+                - drawtype: BOLD_LINE
+                  color: 0040FF
+                  yaxisside: RIGHT
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.snr]'
+                - sortorder: '1'
+                  color: FF4000
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.signal]'
+                - sortorder: '2'
+                  color: FFBF00
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.signal.remote]'
+            - uuid: 445d3d670c5a4d44a223f76bab65f479
+              name: 'AF60 {#IFMAC} Throughput, Capacity, Signal Level'
+              graph_items:
+                - drawtype: BOLD_LINE
+                  color: 0040FF
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.capacity.rx]'
+                - sortorder: '1'
+                  drawtype: BOLD_LINE
+                  color: 00FFBF
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.capacity.tx]'
+                - sortorder: '2'
+                  drawtype: FILLED_REGION
+                  color: FFCDD2
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.throughput.rx]'
+                - sortorder: '3'
+                  drawtype: FILLED_REGION
+                  color: B2DFDB
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.throughput.tx]'
+                - sortorder: '4'
+                  color: FFAB91
+                  yaxisside: RIGHT
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.signal]'
+                - sortorder: '5'
+                  color: FF4000
+                  yaxisside: RIGHT
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti AF60LR Radio'
+                    key: 'af60lr.radio.[{#SNMPINDEX}.signal.remote]'
+      tags:
+        - tag: af60lr
+      macros:
+        - macro: '{$AF60NAME}'
+          value: af60.hostname
+  graphs:
+    - uuid: 8073c5b448224925b13fae5ccc82c873
+      name: 'Radio Frequency'
+      graph_items:
+        - drawtype: GRADIENT_LINE
+          color: 0040FF
+          yaxisside: RIGHT
+          item:
+            host: 'Ubiquiti AF60LR Radio'
+            key: af60lr.radio.bandwidth
+        - sortorder: '1'
+          drawtype: BOLD_LINE
+          color: FF0000
+          item:
+            host: 'Ubiquiti AF60LR Radio'
+            key: af60lr.radio.frequency
+    - uuid: d3951243532a489b8da415a058b02d5a
+      name: 'Radio GPS'
+      graph_items:
+        - drawtype: BOLD_LINE
+          color: '000000'
+          item:
+            host: 'Ubiquiti AF60LR Radio'
+            key: af60lr.radio.gps

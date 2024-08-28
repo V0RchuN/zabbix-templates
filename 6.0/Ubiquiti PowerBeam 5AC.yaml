@@ -1,0 +1,486 @@
+zabbix_export:
+  version: '6.0'
+  date: '2024-08-28T07:35:35Z'
+  groups:
+    - uuid: 5fb19782fea5443ca1d9cce4100dc0c1
+      name: Templates/Users
+  templates:
+    - uuid: e6851dbae6cd46bfb6ccca8b5962cd60
+      template: 'Ubiquiti PowerBeam AC'
+      name: 'Ubiquiti PowerBeam AC'
+      groups:
+        - name: Templates/Users
+      items:
+        - uuid: bd2c8ddbe4554a19a5680ce6105eca8e
+          name: 'ICMP ping'
+          type: SIMPLE
+          key: icmpping
+          tags:
+            - tag: Application
+              value: ICMP
+          triggers:
+            - uuid: 64b3d59f3aaf40e3b150d291dde17512
+              expression: 'max(/Ubiquiti PowerBeam AC/icmpping,#3)=0'
+              name: 'Радиомост PowerBeam недоступен'
+              priority: HIGH
+              description: 'Last three attempts returned timeout.  Please check device connectivity.'
+              tags:
+                - tag: scope
+                  value: availability
+        - uuid: ab2cd581bc304dbf91a6a4a5975a217a
+          name: 'ICMP loss'
+          type: SIMPLE
+          key: icmppingloss
+          value_type: FLOAT
+          units: '%'
+          tags:
+            - tag: Application
+              value: ICMP
+        - uuid: 12cc5b820fd6400fa03081120e04a501
+          name: 'ICMP response time'
+          type: SIMPLE
+          key: icmppingsec
+          value_type: FLOAT
+          units: s
+          tags:
+            - tag: Application
+              value: ICMP
+        - uuid: 7f59f44796354ef1bea8cd8c5517c620
+          name: Uptime
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.3.0
+          key: sysUpTimeInstance
+          delay: 1h
+          units: uptime
+        - uuid: 4815652ff8bc402f9f15aa4ea30e9556
+          name: 'System Contact'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.4.0
+          key: ubiquiti.system.contact
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: CONTACT
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+        - uuid: 52e7267c2d59487c84ebd16561339555
+          name: 'System Firmware'
+          type: SNMP_AGENT
+          snmp_oid: .1.2.840.10036.3.1.2.1.4.7
+          key: ubiquiti.system.firmware
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: OS_FULL
+        - uuid: a2d22b231e004028a97bca1708d5c4ce
+          name: 'System Firmware (Short)'
+          type: SNMP_AGENT
+          snmp_oid: .1.2.840.10036.3.1.2.1.4.7
+          key: ubiquiti.system.firmwareShort
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: OS
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '.*(v\d+\.\d+\.\d+).*'
+                - \1
+        - uuid: 7936e0447c3c4773a9b0b38aeb26be40
+          name: 'GPS Latitude'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41112.1.4.9.3.0
+          key: ubiquiti.system.lat
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: LOCATION_LAT
+        - uuid: 586ae920e9fc4b699f7e8a9250c0dd33
+          name: 'System Location'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.6.0
+          key: ubiquiti.system.location
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: LOCATION
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+        - uuid: a6703793e853417eaae8427757c951b2
+          name: 'GPS Longitude'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.41112.1.4.9.4.0
+          key: ubiquiti.system.long
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: LOCATION_LON
+        - uuid: be7a8673759140fdb8d5e2abf9aab39e
+          name: 'MAC Address'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.41112.1.4.5.1.4.1
+          key: ubiquiti.system.mac
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: MACADDRESS_A
+          preprocessing:
+            - type: TRIM
+              parameters:
+                - ' '
+            - type: STR_REPLACE
+              parameters:
+                - ' '
+                - ':'
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+        - uuid: 4660995e9b6d440cb39f0fdd8c70b083
+          name: 'System Model'
+          type: SNMP_AGENT
+          snmp_oid: .1.2.840.10036.3.1.2.1.3.7
+          key: ubiquiti.system.model
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: MODEL
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+        - uuid: c3975dc117cc46c882d6abbf824e9c8a
+          name: 'Serial Number'
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.41112.1.4.5.1.4.1
+          key: ubiquiti.system.serial
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          inventory_link: SERIALNO_A
+          preprocessing:
+            - type: STR_REPLACE
+              parameters:
+                - ' '
+                - ''
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+        - uuid: c9da8fbcb2e04eebb7092eedc42611e6
+          name: Frequency
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.4.1.41112.1.4.1.1.4.1
+          key: ubiquiti.wireless.chFrequency
+          delay: 5m
+          units: '!MHz'
+          tags:
+            - tag: Wireless
+              value: Frequency
+        - uuid: f628b9ef17154a3d9f7191ad3be1dd92
+          name: 'Channel Width'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41112.1.4.5.1.14.1
+          key: ubiquiti.wireless.chWidth
+          delay: 5m
+          units: '!Mhz'
+          tags:
+            - tag: Wireless
+              value: 'Channel Width'
+      discovery_rules:
+        - uuid: e55391635749428ea38547e906c9da9b
+          name: 'Network interfaces discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#IFOPERSTATUS},1.3.6.1.2.1.2.2.1.8,{#IFADMINSTATUS},1.3.6.1.2.1.2.2.1.7,{#IFNAME},1.3.6.1.2.1.2.2.1.2,{#IFDESCR},1.3.6.1.2.1.2.2.1.2,{#IFTYPE},1.3.6.1.2.1.2.2.1.3]'
+          key: net.if.discovery
+          filter:
+            conditions:
+              - macro: '{#IFDESCR}'
+                value: ^eth0$
+                formulaid: A
+          description: 'Discovering interfaces from IF-MIB.'
+          item_prototypes:
+            - uuid: 29f6bc698814478498a16aa07f1f870a
+              name: 'Interface {#IFDESCR}: Bits received'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.2.2.1.10.{#SNMPINDEX}'
+              key: 'net.if.in[ifInOctets.{#SNMPINDEX}]'
+              units: bps
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+            - uuid: e7fdd827ffc44e2db91b55a956479533
+              name: 'Interface {#IFDESCR}: Bits sent'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.2.2.1.16.{#SNMPINDEX}'
+              key: 'net.if.out[ifOutOctets.{#SNMPINDEX}]'
+              units: bps
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+            - uuid: 2fa56d56eaf44743b12312d982fcf508
+              name: 'Interface {#IFDESCR}: Speed'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.2.2.1.5.{#SNMPINDEX}'
+              key: 'net.if.speed[ifSpeed.{#SNMPINDEX}]'
+              units: bps
+              tags:
+                - tag: Network
+                  value: Speed
+              trigger_prototypes:
+                - uuid: 9066457ef6354ec881effc4678bacef5
+                  expression: 'last(/Ubiquiti PowerBeam AC/net.if.speed[ifSpeed.{#SNMPINDEX}])<100000000'
+                  name: 'Interface{#IFNAME}: Link lower 100Mbps'
+                  event_name: 'Скорость интерфейса {#IFNAME} ниже 100Мбит/с'
+                  opdata: 'Текущая скорость: {ITEM.LASTVALUE1}'
+                  priority: HIGH
+                  tags:
+                    - tag: scope
+                      value: performance
+          graph_prototypes:
+            - uuid: e687ddcadd4945a5a0ceee07383a9e5f
+              name: 'Throughput TX/RX'
+              graph_items:
+                - color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti PowerBeam AC'
+                    key: 'net.if.in[ifInOctets.{#SNMPINDEX}]'
+                - sortorder: '1'
+                  color: F63100
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti PowerBeam AC'
+                    key: 'net.if.out[ifOutOctets.{#SNMPINDEX}]'
+        - uuid: e030a4b687a04a1e97ea24842b0e67da
+          name: 'FW/HW Discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#UBNTID},1.2.840.10036.3.1.2.1.1,{#UBNTMODEL},1.2.840.10036.3.1.2.1.3, {#UBNTFIRMWARE}, 1.2.840.10036.3.1.2.1.4]'
+          key: ubiquiti.fwhw.discovery
+          delay: 5m
+          filter:
+            conditions:
+              - macro: '{#SNMPINDEX}'
+                value: '^[1-9]$'
+                formulaid: A
+          item_prototypes:
+            - uuid: b76c25a235214326a9a86dd075db7599
+              name: 'Model type'
+              type: SNMP_AGENT
+              snmp_oid: '1.2.840.10036.3.1.2.1.3.{#SNMPINDEX}'
+              key: ubiquiti.hardware.model
+              delay: 5m
+              trends: '0'
+              value_type: TEXT
+              preprocessing:
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 1d
+        - uuid: ff14f87ea6234fe6870546d822ee3568
+          name: 'Station List'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#SNMPVALUE},.1.3.6.1.4.1.41112.1.4.7.1.2]'
+          key: ubntStaName
+          item_prototypes:
+            - uuid: cd878612d16744319ebc76ebdadd17e4
+              name: 'Station Connection Time {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.4.7.1.15.{#SNMPINDEX}'
+              key: 'ubntStaConnTime[{#SNMPVALUE}]'
+              units: uptime
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.01'
+              trigger_prototypes:
+                - uuid: 48860f367a05433f81ff242b74f04758
+                  expression: 'change(/Ubiquiti PowerBeam AC/ubntStaConnTime[{#SNMPVALUE}])=0'
+                  name: 'Connection {#SNMPVALUE} was restarted'
+                  priority: INFO
+            - uuid: b0be1342b54b4a189249d3b6772f4e24
+              name: 'Station MAC Address {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.4.7.1.1.{#SNMPINDEX}'
+              key: 'ubntStaMac[{#SNMPVALUE}]'
+              trends: '0'
+              status: DISABLED
+              value_type: TEXT
+            - uuid: df53c732a7ec4d23b7c013a6c29ce755
+              name: 'Station Name {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.4.7.1.2.{#SNMPINDEX}'
+              key: 'ubntStaName[{#SNMPVALUE}]'
+              trends: '0'
+              value_type: TEXT
+            - uuid: ebef355bf8e6489c8d2b3b841c98b120
+              name: 'Station Noise Floor {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.4.7.1.4.{#SNMPINDEX}'
+              key: 'ubntStaNoiseFloor[{#SNMPVALUE}]'
+              value_type: FLOAT
+              units: dBm
+            - uuid: a2c9991173f44fb2911f0f320bc68387
+              name: 'Airtime RX {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: 'iso.3.6.1.4.1.41112.1.4.7.1.20.{#SNMPINDEX}'
+              key: 'ubntStaRxAirtime[{#SNMPVALUE}]'
+              units: '%'
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.1'
+            - uuid: 9e9145c962944dbdab35d75fc13571be
+              name: 'Bytes RX  {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.4.7.1.14.{#SNMPINDEX}'
+              key: 'ubntStaRxBytes[{#SNMPVALUE}]'
+              status: DISABLED
+              units: bps
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+            - uuid: 0c0bd3e614e849978d9fb585c8cf41da
+              name: 'Station Capacity Rx  {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.4.7.1.18.{#SNMPINDEX}'
+              key: 'ubntStaRxCapacity[{#SNMPVALUE}]'
+              units: bps
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '1000'
+              tags:
+                - tag: Wireless
+                  value: Capacity
+            - uuid: f71e0af3a15347c6b26c955973235838
+              name: 'Station Signal Strength {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.4.7.1.3.{#SNMPINDEX}'
+              key: 'ubntStaSignal[{#SNMPVALUE}]'
+              value_type: FLOAT
+              units: dBm
+            - uuid: c8f0628259114c7fbb19a50cb2eaf429
+              name: 'Airtime TX {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: 'iso.3.6.1.4.1.41112.1.4.7.1.19.{#SNMPINDEX}'
+              key: 'ubntStaTxAirtime[{#SNMPVALUE}]'
+              units: '%'
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.1'
+            - uuid: 8e7f72ae41b342ab8d47a607afaf896f
+              name: 'Bytes TX   {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.4.7.1.13.{#SNMPINDEX}'
+              key: 'ubntStaTxBytes[{#SNMPVALUE}]'
+              status: DISABLED
+              units: bps
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+            - uuid: 788fcbcab9db4b26a0b650773adf912e
+              name: 'Station Capacity Tx {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.4.7.1.17.{#SNMPINDEX}'
+              key: 'ubntStaTxCapacity[{#SNMPVALUE}]'
+              units: bps
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '1000'
+              tags:
+                - tag: Wireless
+                  value: Capacity
+            - uuid: 232a3fefe6794cf1aa3dfd4cac142672
+              name: 'Station  Tx Latency {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.4.1.41112.1.4.7.1.21.{#SNMPINDEX}'
+              key: 'ubntStaTxLatency[{#SNMPVALUE}]'
+              units: Ms
+          trigger_prototypes:
+            - uuid: 5a93dc01ccec4f49b0998ef323ea7f83
+              expression: '(last(/Ubiquiti PowerBeam AC/ubntStaRxCapacity[{#SNMPVALUE}])<24000000 or last(/Ubiquiti PowerBeam AC/ubntStaTxCapacity[{#SNMPVALUE}])<24000000) and left(last(/Ubiquiti PowerBeam AC/ubntStaName[{#SNMPVALUE}]),2)="LU"'
+              name: 'Ёмкость канала TX или RX {#SNMPVALUE} ниже 24 Мбит/с'
+              priority: WARNING
+              tags:
+                - tag: scope
+                  value: performance
+            - uuid: 766f520a9a11424e901f4491bfc97e55
+              expression: '(count(/Ubiquiti PowerBeam AC/ubntStaTxCapacity[{#SNMPVALUE}],43200,"lt","24000000")>35 or count(/Ubiquiti PowerBeam AC/ubntStaRxCapacity[{#SNMPVALUE}],43200,"lt","24000000")>35) and left(last(/Ubiquiti PowerBeam AC/ubntStaName[{#SNMPVALUE}]),2)="LU"'
+              name: 'Ёмкость канала TX или RX {#SNMPVALUE} ниже 24 Мбит/с (более 35 раз за 12 часов)'
+              priority: AVERAGE
+              tags:
+                - tag: scope
+                  value: performance
+            - uuid: 744829b835c24cdcbbc5f5b5071ee3dd
+              expression: '(last(/Ubiquiti PowerBeam AC/ubntStaRxCapacity[{#SNMPVALUE}])<70000000 or last(/Ubiquiti PowerBeam AC/ubntStaTxCapacity[{#SNMPVALUE}])<70000000) and left(last(/Ubiquiti PowerBeam AC/ubntStaName[{#SNMPVALUE}]),1)="P"'
+              name: 'Ёмкость канала TX или RX {#SNMPVALUE} ниже 70 Мбит/с'
+              priority: WARNING
+              tags:
+                - tag: scope
+                  value: performance
+            - uuid: 61a859678a3747d5b4480c7ae7c793f9
+              expression: '(count(/Ubiquiti PowerBeam AC/ubntStaTxCapacity[{#SNMPVALUE}],43200,"lt","70000000")>35 or count(/Ubiquiti PowerBeam AC/ubntStaRxCapacity[{#SNMPVALUE}],43200,"lt","70000000")>35) and left(last(/Ubiquiti PowerBeam AC/ubntStaName[{#SNMPVALUE}]),1)="P"'
+              name: 'Ёмкость канала TX или RX  {#SNMPVALUE} ниже 70 Мбит/с (более 35 раз за 12 часов)'
+              priority: AVERAGE
+              tags:
+                - tag: scope
+                  value: performance
+          graph_prototypes:
+            - uuid: 96f86fcf22f54149b091cdec92ea06da
+              name: 'Capacity RX/TX'
+              graph_items:
+                - color: 00FF00
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti PowerBeam AC'
+                    key: 'ubntStaRxCapacity[{#SNMPVALUE}]'
+                - sortorder: '1'
+                  color: FF0000
+                  calc_fnc: ALL
+                  item:
+                    host: 'Ubiquiti PowerBeam AC'
+                    key: 'ubntStaTxCapacity[{#SNMPVALUE}]'
+      macros:
+        - macro: '{$NET.IF.IFDESCR.MATCHES}'
+          value: '*.'
+        - macro: '{$NET.IF.IFDESCR.NOT_MATCHES}'
+          value: CHANGE_IF_NEEDED
+        - macro: '{$UBNTSTANAME.CONTAINS}'
+          value: ^p
+        - macro: '{$UBNTSTARXCAPACITY.MIN.WARN}'
+          value: '50000000'
+  graphs:
+    - uuid: cc76b392460449a98e2066b932095768
+      name: 'ICMP ping'
+      graph_items:
+        - color: 199C0D
+          calc_fnc: ALL
+          item:
+            host: 'Ubiquiti PowerBeam AC'
+            key: icmpping
+        - sortorder: '1'
+          color: F63100
+          calc_fnc: ALL
+          item:
+            host: 'Ubiquiti PowerBeam AC'
+            key: icmppingsec
