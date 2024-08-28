@@ -1,0 +1,288 @@
+zabbix_export:
+  version: '6.0'
+  date: '2024-08-28T06:56:01Z'
+  groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 33b86b6055834a5596f9e9a73b175e7d
+      template: 'Mikrotik SXT LTE over HTTP'
+      name: 'Mikrotik SXT LTE over HTTP'
+      description: |
+        Данный шаблон использует для временного рамещения данных сервис dweet.io, вместо него можно использовать свой сервер находящийся в интернет. Т.к. HEX (ЗО КТ) может не поднять L2TP сессию, а при этом LTE модем (ЗО ftel.kz) будет работать. 
+        На каждой SXT LTE прописываем следующие команды:
+        system scheduler add interval=1m name=sendLteInfoScript on-event=sendLteInfo start-time=startup
+        system script add name="sendLteInfo" source="local lteinfo [interface lte info lte1 once as-value]\
+            \nlocal lteuptime (\$lteinfo->\"session-uptime\")\
+            \nlocal lteimei (\$lteinfo->\"imei\")\
+            \nlocal ltersrp (\$lteinfo->\"rsrp\")\
+            \nlocal ltesinr (\$lteinfo->\"sinr\")\
+            \nlocal ltersrq (\$lteinfo->\"rsrq\")\
+            \nlocal lteuicc (\$lteinfo->\"uicc\")\
+            \nlocal hostname [system identity get name]\
+            \nlocal hexname [ip neighbor get 0 identity]\
+            \nlocal hexEther [ip neighbor get 0 interface-name]\
+            \nlocal hexUptime [ip neighbor get 0 uptime]\
+            \nlocal hexMac [ip neighbor get 0 mac-address]\
+            \ntool fetch url=\"https://dweet.io/dweet/for/\$hexname\\\?lteuptime=\$lteuptime&imei=\$lteimei\
+        	&simcard=s\$lteuicc&rsrq=\$ltersrq&rsrp=\$ltersrp&sinr=\$ltesinr&ltename=\$hostname&hexEther=\$hexEther&hexMac=\$he\
+            xMac&hexUptime=\$hexUptime\" keep-result=no"
+        system scheduler print
+        system script run sendLteInfo
+        
+        Мониторинг производится по hostname HEX подключенный к SXT обнаруживаемый через ip neighbors. Номер симкарты передаётся с добавлением в начале символа - s, при обработке Zabbix символ убирается (такой workaround чтобы dweet.io воспринимал как строку, а не число)
+      groups:
+        - name: Templates
+      items:
+        - uuid: f28da664cbb9409ba026a7bae42e55d3
+          name: Dweet.io
+          type: HTTP_AGENT
+          key: io.dweet.lte
+          trends: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.with[0].content'
+          url: 'https://dweet.io/get/latest/dweet/for/{HOST.HOST}'
+        - uuid: 57d2155b22be425c853d7b3729d2de7f
+          name: 'HEX Uplink Port'
+          type: DEPENDENT
+          key: io.dweet.lte.hexEther
+          delay: '0'
+          trends: '0'
+          value_type: TEXT
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.hexEther
+          master_item:
+            key: io.dweet.lte
+        - uuid: 9816e4fc1ae047639b08dd4c48575135
+          name: 'HEX MAC Address'
+          type: DEPENDENT
+          key: io.dweet.lte.hexMac
+          delay: '0'
+          trends: '0'
+          value_type: TEXT
+          inventory_link: MACADDRESS_B
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.hexMac
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          master_item:
+            key: io.dweet.lte
+        - uuid: e39edc213b6f4c7d9f7151523ae0fd2c
+          name: 'HEX Uptime'
+          type: DEPENDENT
+          key: io.dweet.lte.hexUptime
+          delay: '0'
+          units: uptime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.hexUptime
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  // Регулярное выражение для извлечения временных компонентов
+                      var regex = /(\d+y)?(\d+w)?(\d+d)?(\d+):(\d+):(\d+)/;
+                      var match = regex.exec(value);
+                      
+                      if (!match) {
+                          return NaN; // Не удалось разобрать формат
+                      }
+                      
+                      // Извлекаем значения из регулярного выражения, учитывая возможное отсутствие компонентов
+                      var years = match[1] ? parseInt(match[1]) : 0;
+                      var weeks = match[2] ? parseInt(match[2]) : 0;
+                      var days = match[3] ? parseInt(match[3]) : 0;
+                      var hours = parseInt(match[4]);
+                      var minutes = parseInt(match[5]);
+                      var seconds = parseInt(match[6]);
+                      
+                      // Вычисляем общее количество секунд
+                      var totalSeconds = (((years * 365 + weeks * 7 + days) * 24 + hours) * 3600 + minutes * 60 + seconds);
+                      
+                      return totalSeconds;
+          master_item:
+            key: io.dweet.lte
+        - uuid: 67f0ef2e2dc74bd7984d9bf01bb1feaf
+          name: 'LTE IMEI'
+          type: DEPENDENT
+          key: io.dweet.lte.imei
+          delay: '0'
+          trends: '0'
+          value_type: TEXT
+          inventory_link: SERIALNO_B
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.imei
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          master_item:
+            key: io.dweet.lte
+          triggers:
+            - uuid: 336c9e0738634781a176bf44567345e0
+              expression: 'last(/Mikrotik SXT LTE over HTTP/io.dweet.lte.imei,#1)<>last(/Mikrotik SXT LTE over HTTP/io.dweet.lte.imei,#2)'
+              name: 'LTE IMEI has been changed'
+              opdata: 'IMEI устройства изменился.'
+              priority: INFO
+              manual_close: 'YES'
+        - uuid: 2162057ce8d64f16a5b3efe7eaddec53
+          name: 'LTE Object Name'
+          type: DEPENDENT
+          key: io.dweet.lte.ltename
+          delay: '0'
+          trends: '0'
+          value_type: TEXT
+          inventory_link: NAME
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.ltename
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          master_item:
+            key: io.dweet.lte
+          triggers:
+            - uuid: 7964af77980244f883fdbe214aa7d7f3
+              expression: 'last(/Mikrotik SXT LTE over HTTP/io.dweet.lte.ltename,#1)<>last(/Mikrotik SXT LTE over HTTP/io.dweet.lte.ltename,#2)'
+              name: 'LTE Object Name Changes'
+              opdata: 'Внимание изменился LTE модем на объекте'
+              priority: INFO
+              manual_close: 'YES'
+        - uuid: 22cc97de071e4f179a991bd4e815a5fd
+          name: 'LTE Session Uptime'
+          type: DEPENDENT
+          key: io.dweet.lte.lteuptime
+          delay: '0'
+          units: uptime
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.lteuptime
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  // Регулярное выражение для извлечения временных компонентов
+                      var regex = /(\d+y)?(\d+w)?(\d+d)?(\d+):(\d+):(\d+)/;
+                      var match = regex.exec(value);
+                      
+                      if (!match) {
+                          return NaN; // Не удалось разобрать формат
+                      }
+                      
+                      // Извлекаем значения из регулярного выражения, учитывая возможное отсутствие компонентов
+                      var years = match[1] ? parseInt(match[1]) : 0;
+                      var weeks = match[2] ? parseInt(match[2]) : 0;
+                      var days = match[3] ? parseInt(match[3]) : 0;
+                      var hours = parseInt(match[4]);
+                      var minutes = parseInt(match[5]);
+                      var seconds = parseInt(match[6]);
+                      
+                      // Вычисляем общее количество секунд
+                      var totalSeconds = (((years * 365 + weeks * 7 + days) * 24 + hours) * 3600 + minutes * 60 + seconds);
+                      
+                      return totalSeconds;
+          master_item:
+            key: io.dweet.lte
+        - uuid: c4c60c6c23e54a148a6cd5e828e9f1ff
+          name: 'LTE Quality RSRP'
+          type: DEPENDENT
+          key: io.dweet.lte.rsrp
+          delay: '0'
+          value_type: FLOAT
+          units: dBm
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.rsrp
+          master_item:
+            key: io.dweet.lte
+        - uuid: b7270919263e437e8b90216a11c7f850
+          name: 'LTE Quality RSRQ'
+          type: DEPENDENT
+          key: io.dweet.lte.rsrq
+          delay: '0'
+          value_type: FLOAT
+          units: dB
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.rsrq
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+          master_item:
+            key: io.dweet.lte
+        - uuid: 7f186d4fba5243e2a80519b07ed10a92
+          name: 'LTE SIM ID'
+          type: DEPENDENT
+          key: io.dweet.lte.simcard
+          delay: '0'
+          trends: '0'
+          value_type: TEXT
+          inventory_link: SERIALNO_A
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.simcard
+            - type: STR_REPLACE
+              parameters:
+                - s
+                - ''
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1d
+          master_item:
+            key: io.dweet.lte
+          triggers:
+            - uuid: 7f4b43a71073491dbae4ecf28bcd6e12
+              expression: 'last(/Mikrotik SXT LTE over HTTP/io.dweet.lte.simcard,#1)<>last(/Mikrotik SXT LTE over HTTP/io.dweet.lte.simcard,#2)'
+              name: 'LTE SIM card changed'
+              opdata: 'Изменилась сим карта в устройстве.'
+              priority: INFO
+              manual_close: 'YES'
+        - uuid: 11f671b8291a4a99a490f1aa75a43e26
+          name: 'LTE Quality SINR'
+          type: DEPENDENT
+          key: io.dweet.lte.sinr
+          delay: '0'
+          value_type: FLOAT
+          units: dB
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.sinr
+          master_item:
+            key: io.dweet.lte
+  graphs:
+    - uuid: 7f67d144011448b8aa999aadcead321a
+      name: 'LTE Parametrs'
+      graph_items:
+        - color: 1A7C11
+          calc_fnc: ALL
+          item:
+            host: 'Mikrotik SXT LTE over HTTP'
+            key: io.dweet.lte.rsrp
+        - sortorder: '1'
+          color: '274482'
+          yaxisside: RIGHT
+          calc_fnc: ALL
+          item:
+            host: 'Mikrotik SXT LTE over HTTP'
+            key: io.dweet.lte.rsrq
+        - sortorder: '2'
+          color: F63100
+          yaxisside: RIGHT
+          calc_fnc: ALL
+          item:
+            host: 'Mikrotik SXT LTE over HTTP'
+            key: io.dweet.lte.sinr
