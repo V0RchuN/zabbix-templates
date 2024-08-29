@@ -1,13 +1,16 @@
 zabbix_export:
   version: '6.0'
-  date: '2024-08-28T06:57:02Z'
+  date: '2024-08-29T05:09:03Z'
   groups:
     - uuid: 36bff6c29af64692839d077febfc7079
       name: 'Templates/Network devices'
   templates:
     - uuid: 3de7c0cfc857470f8af84f8172e5c3df
-      template: 'Mikrotik R11e-LTE SNMP.3'
-      name: 'Mikrotik R11e-LTE SNMP.3'
+      template: 'Mikrotik R11e-LTE'
+      name: 'Mikrotik R11e-LTE'
+      description: |
+        Для корректного определения LTE параметров необходимо задать для хоста пользовательский макрос {$LTESNMPINDEX}. По умолчанию 3, но бывает что 1 или 2. Проверить можно запросом:
+        snmpwalk -v 1 -c <community> <ip> 1.3.6.1.4.1.14988.1.1.16.1.1
       groups:
         - name: 'Templates/Network devices'
       items:
@@ -25,7 +28,7 @@ zabbix_export:
               value: network
           triggers:
             - uuid: 8855728f37e04fc3a75cb1a431d55b8c
-              expression: 'max(/Mikrotik R11e-LTE SNMP.3/icmpping,#3)=0'
+              expression: 'max(/Mikrotik R11e-LTE/icmpping,#3)=0'
               name: 'LTE SXT/LHG: Объект не доступен.'
               priority: HIGH
               description: 'Last three attempts returned timeout.  Please check device connectivity.'
@@ -46,13 +49,13 @@ zabbix_export:
               value: network
           triggers:
             - uuid: 6edba00aebde4825a80bb6a912b44f29
-              expression: 'min(/Mikrotik R11e-LTE SNMP.3/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/Mikrotik R11e-LTE SNMP.3/icmppingloss,5m)<100'
+              expression: 'min(/Mikrotik R11e-LTE/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/Mikrotik R11e-LTE/icmppingloss,5m)<100'
               name: 'LTE SXT/LHG: Частые потери пакетов'
               opdata: 'Loss: {ITEM.LASTVALUE1}'
               priority: WARNING
               dependencies:
                 - name: 'LTE SXT/LHG: Объект не доступен.'
-                  expression: 'max(/Mikrotik R11e-LTE SNMP.3/icmpping,#3)=0'
+                  expression: 'max(/Mikrotik R11e-LTE/icmpping,#3)=0'
               tags:
                 - tag: scope
                   value: availability
@@ -72,15 +75,15 @@ zabbix_export:
               value: network
           triggers:
             - uuid: 3f58fe25c3904c8dad848a7821027f2c
-              expression: 'avg(/Mikrotik R11e-LTE SNMP.3/icmppingsec,5m)>{$ICMP_RESPONSE_TIME_WARN}'
+              expression: 'avg(/Mikrotik R11e-LTE/icmppingsec,5m)>{$ICMP_RESPONSE_TIME_WARN}'
               name: 'LTE SXT/LHG: Высокая задержка пакетов'
               opdata: 'Value: {ITEM.LASTVALUE1}'
               priority: WARNING
               dependencies:
                 - name: 'LTE SXT/LHG: Объект не доступен.'
-                  expression: 'max(/Mikrotik R11e-LTE SNMP.3/icmpping,#3)=0'
+                  expression: 'max(/Mikrotik R11e-LTE/icmpping,#3)=0'
                 - name: 'LTE SXT/LHG: Частые потери пакетов'
-                  expression: 'min(/Mikrotik R11e-LTE SNMP.3/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/Mikrotik R11e-LTE SNMP.3/icmppingloss,5m)<100'
+                  expression: 'min(/Mikrotik R11e-LTE/icmppingloss,5m)>{$ICMP_LOSS_WARN} and min(/Mikrotik R11e-LTE/icmppingloss,5m)<100'
               tags:
                 - tag: scope
                   value: availability
@@ -101,7 +104,7 @@ zabbix_export:
         - uuid: a84ede7a800a483db4dc9fd08669ff43
           name: 'SXT LTE Access Technology'
           type: SNMP_AGENT
-          snmp_oid: 1.3.6.1.4.1.14988.1.1.16.1.1.14.3
+          snmp_oid: '1.3.6.1.4.1.14988.1.1.16.1.1.14.{$LTESNMPINDEX}'
           key: sxt.lte.accessTechnology
           history: 7d
           trends: '0'
@@ -113,7 +116,7 @@ zabbix_export:
         - uuid: 0ca6f5439cc140478039f2b2f5584e92
           name: 'SXT LTE IMEI'
           type: SNMP_AGENT
-          snmp_oid: 1.3.6.1.4.1.14988.1.1.16.1.1.11.3
+          snmp_oid: '1.3.6.1.4.1.14988.1.1.16.1.1.11.{$LTESNMPINDEX}'
           key: sxt.lte.imei
           history: 7d
           trends: '0'
@@ -126,7 +129,7 @@ zabbix_export:
         - uuid: 1c240dc5f456453088710a96ca87ec4f
           name: 'SXT LTE IMSI'
           type: SNMP_AGENT
-          snmp_oid: 1.3.6.1.4.1.14988.1.1.16.1.1.12.3
+          snmp_oid: '1.3.6.1.4.1.14988.1.1.16.1.1.12.{$LTESNMPINDEX}'
           key: sxt.lte.imsi
           history: 7d
           trends: '0'
@@ -139,39 +142,75 @@ zabbix_export:
         - uuid: 2cb1be4992794c2ea25508c06ee57d62
           name: 'SXT LTE RSRP'
           type: SNMP_AGENT
-          snmp_oid: 1.3.6.1.4.1.14988.1.1.16.1.1.4.3
+          snmp_oid: '1.3.6.1.4.1.14988.1.1.16.1.1.4.{$LTESNMPINDEX}'
           key: sxt.lte.rsrp
           history: 30d
           value_type: FLOAT
           units: dbm
+          triggers:
+            - uuid: 24bf939ac1e6452e8de93166d77f6c6d
+              expression: 'max(/Mikrotik R11e-LTE/sxt.lte.rsrp,5m) < {$LTEMODEM.RSRP.MIN.WARN}'
+              name: 'LTE modem RSRP is low'
+              event_name: 'Низкий уровень сигнала от БС LTE'
+              priority: WARNING
+              tags:
+                - tag: scope
+                  value: perfomance
         - uuid: 1d807c401443432fbeb7eb7ba9fc89a0
           name: 'SXT LTE RSRQ'
           type: SNMP_AGENT
-          snmp_oid: 1.3.6.1.4.1.14988.1.1.16.1.1.3.3
+          snmp_oid: '1.3.6.1.4.1.14988.1.1.16.1.1.3.{$LTESNMPINDEX}'
           key: sxt.lte.rsrq
           history: 30d
           value_type: FLOAT
           units: dbm
+          triggers:
+            - uuid: 22764e60e48945f9967de6152c80b652
+              expression: 'max(/Mikrotik R11e-LTE/sxt.lte.rsrq,5m) < {$LTEMODEM.RSRQ.MIN.WARN}'
+              name: 'LTE modem RSRQ is low'
+              event_name: 'Низкий уровень качества сигнала LTE'
+              priority: WARNING
+              tags:
+                - tag: scope
+                  value: performance
         - uuid: 83e709a64c734f2d862e136455b5e4ef
           name: 'SXT LTE RSSI'
           type: SNMP_AGENT
-          snmp_oid: 1.3.6.1.4.1.14988.1.1.16.1.1.2.3
+          snmp_oid: '1.3.6.1.4.1.14988.1.1.16.1.1.2.{$LTESNMPINDEX}'
           key: sxt.lte.rssi
           history: 30d
           value_type: FLOAT
           units: dbm
+          triggers:
+            - uuid: 191f76c7d7034a4b9c35d09ce6c765f9
+              expression: 'max(/Mikrotik R11e-LTE/sxt.lte.rssi,5m) < {$LTEMODEM.RSSI.MIN.WARN}'
+              name: 'LTE modem RSSI is low'
+              event_name: 'Низкий уровень RSSI LTE'
+              priority: WARNING
+              tags:
+                - tag: scope
+                  value: performance
         - uuid: ce4068f612e841a29de371675b48d219
           name: 'SXT LTE SINR'
           type: SNMP_AGENT
-          snmp_oid: 1.3.6.1.4.1.14988.1.1.16.1.1.7.3
+          snmp_oid: '1.3.6.1.4.1.14988.1.1.16.1.1.7.{$LTESNMPINDEX}'
           key: sxt.lte.sinr
           history: 30d
           value_type: FLOAT
           units: db
+          triggers:
+            - uuid: 99faed0b12364cc8a12a457b989e1a8d
+              expression: 'max(/Mikrotik R11e-LTE/sxt.lte.sinr,5m) < {$LTEMODEM.SINR.MIN.WARN}'
+              name: 'LTE modem SINR is low'
+              event_name: 'Низкий уровень SINR LTE'
+              priority: WARNING
+              tags:
+                - tag: scope
+                  value: performance
         - uuid: c502c36ea00b4922a663f0ac1500165c
           name: 'SXT LTE UICC'
           type: SNMP_AGENT
-          snmp_oid: 1.3.6.1.4.1.14988.1.1.16.1.1.13.3
+          snmp_oid: '1.3.6.1.4.1.14988.1.1.16.1.1.13.{$LTESNMPINDEX}'
           key: sxt.lte.uicc
           history: 7d
           trends: '0'
@@ -243,7 +282,7 @@ zabbix_export:
               value: system
           triggers:
             - uuid: 567c783a9d574a5981b96feb96344e92
-              expression: 'last(/Mikrotik R11e-LTE SNMP.3/system.hw.firmware,#1)<>last(/Mikrotik R11e-LTE SNMP.3/system.hw.firmware,#2) and length(last(/Mikrotik R11e-LTE SNMP.3/system.hw.firmware))>0'
+              expression: 'last(/Mikrotik R11e-LTE/system.hw.firmware,#1)<>last(/Mikrotik R11e-LTE/system.hw.firmware,#2) and length(last(/Mikrotik R11e-LTE/system.hw.firmware))>0'
               name: 'LTE SXT/LHG: Firmware has changed'
               opdata: 'Current value: {ITEM.LASTVALUE1}'
               priority: INFO
@@ -295,7 +334,7 @@ zabbix_export:
               value: system
           triggers:
             - uuid: 8b4cea4b09ab4421833b9a89cbdb7f09
-              expression: 'last(/Mikrotik R11e-LTE SNMP.3/system.hw.serialnumber,#1)<>last(/Mikrotik R11e-LTE SNMP.3/system.hw.serialnumber,#2) and length(last(/Mikrotik R11e-LTE SNMP.3/system.hw.serialnumber))>0'
+              expression: 'last(/Mikrotik R11e-LTE/system.hw.serialnumber,#1)<>last(/Mikrotik R11e-LTE/system.hw.serialnumber,#2) and length(last(/Mikrotik R11e-LTE/system.hw.serialnumber))>0'
               name: 'LTE SXT/LHG: Device has been replaced'
               event_name: 'Mikrotik: Device has been replaced (new serial number received)'
               priority: INFO
@@ -370,7 +409,7 @@ zabbix_export:
               value: system
           triggers:
             - uuid: 5079c109f3414a06a06a314ce30f7a05
-              expression: 'last(/Mikrotik R11e-LTE SNMP.3/system.name,#1)<>last(/Mikrotik R11e-LTE SNMP.3/system.name,#2) and length(last(/Mikrotik R11e-LTE SNMP.3/system.name))>0'
+              expression: 'last(/Mikrotik R11e-LTE/system.name,#1)<>last(/Mikrotik R11e-LTE/system.name,#2) and length(last(/Mikrotik R11e-LTE/system.name))>0'
               name: 'LTE SXT/LHG: Hostname объекта изменён'
               event_name: 'LTE SXT/LHG: System name изменен (новое имя: {ITEM.VALUE})'
               priority: INFO
@@ -441,14 +480,14 @@ zabbix_export:
               value: os
           triggers:
             - uuid: 5968fbb323954af988411ef2f882376a
-              expression: 'last(/Mikrotik R11e-LTE SNMP.3/system.sw.os[mtxrLicVersion.0],#1)<>last(/Mikrotik R11e-LTE SNMP.3/system.sw.os[mtxrLicVersion.0],#2) and length(last(/Mikrotik R11e-LTE SNMP.3/system.sw.os[mtxrLicVersion.0]))>0'
+              expression: 'last(/Mikrotik R11e-LTE/system.sw.os[mtxrLicVersion.0],#1)<>last(/Mikrotik R11e-LTE/system.sw.os[mtxrLicVersion.0],#2) and length(last(/Mikrotik R11e-LTE/system.sw.os[mtxrLicVersion.0]))>0'
               name: 'LTE SXT/LHG: Название ОС изменилось'
               priority: INFO
               description: 'The description of the operating system has changed. Possible reasons are that the system has been updated or replaced. Acknowledge to close the problem manually.'
               manual_close: 'YES'
               dependencies:
                 - name: 'LTE SXT/LHG: Hostname объекта изменён'
-                  expression: 'last(/Mikrotik R11e-LTE SNMP.3/system.name,#1)<>last(/Mikrotik R11e-LTE SNMP.3/system.name,#2) and length(last(/Mikrotik R11e-LTE SNMP.3/system.name))>0'
+                  expression: 'last(/Mikrotik R11e-LTE/system.name,#1)<>last(/Mikrotik R11e-LTE/system.name,#2) and length(last(/Mikrotik R11e-LTE/system.name))>0'
               tags:
                 - tag: scope
                   value: notice
@@ -508,7 +547,7 @@ zabbix_export:
               value: memory
           triggers:
             - uuid: 830ef00358d043f1a8154e4151fae603
-              expression: 'min(/Mikrotik R11e-LTE SNMP.3/vm.memory.util[memoryUsedPercentage.Memory],5m)>{$MEMORY.UTIL.MAX}'
+              expression: 'min(/Mikrotik R11e-LTE/vm.memory.util[memoryUsedPercentage.Memory],5m)>{$MEMORY.UTIL.MAX}'
               name: 'LTE SXT/LHG: высокая загрузка памяти'
               event_name: 'Mikrotik: High memory utilization (>{$MEMORY.UTIL.MAX}% for 5m)'
               priority: AVERAGE
@@ -538,14 +577,14 @@ zabbix_export:
               value: network
           triggers:
             - uuid: a9aa777c343643e39fdfd25970ebe47e
-              expression: 'max(/Mikrotik R11e-LTE SNMP.3/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              expression: 'max(/Mikrotik R11e-LTE/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
               name: 'LTE SXT/LHG: Проблемы с SNMP'
               opdata: 'Current state: {ITEM.LASTVALUE1}'
               priority: WARNING
               description: 'SNMP is not available for polling. Please check device connectivity and SNMP settings.'
               dependencies:
                 - name: 'LTE SXT/LHG: Объект не доступен.'
-                  expression: 'max(/Mikrotik R11e-LTE SNMP.3/icmpping,#3)=0'
+                  expression: 'max(/Mikrotik R11e-LTE/icmpping,#3)=0'
               tags:
                 - tag: scope
                   value: availability
@@ -574,7 +613,7 @@ zabbix_export:
                   value: cpu
               trigger_prototypes:
                 - uuid: 39cef6af335d455c88fef99917e7279f
-                  expression: 'min(/Mikrotik R11e-LTE SNMP.3/system.cpu.util[hrProcessorLoad.{#SNMPINDEX}],5m)>{$CPU.UTIL.CRIT}'
+                  expression: 'min(/Mikrotik R11e-LTE/system.cpu.util[hrProcessorLoad.{#SNMPINDEX}],5m)>{$CPU.UTIL.CRIT}'
                   name: '#{#SNMPINDEX}: High CPU utilization'
                   event_name: '#{#SNMPINDEX}: High CPU utilization (over {$CPU.UTIL.CRIT}% for 5m)'
                   opdata: 'Current utilization: {ITEM.LASTVALUE1}'
@@ -592,7 +631,7 @@ zabbix_export:
                 - drawtype: GRADIENT_LINE
                   color: 199C0D
                   item:
-                    host: 'Mikrotik R11e-LTE SNMP.3'
+                    host: 'Mikrotik R11e-LTE'
                     key: 'system.cpu.util[hrProcessorLoad.{#SNMPINDEX}]'
         - uuid: c6e9a85f10074bc4b83f21f3d6fbeff7
           name: 'Scripts discovery'
@@ -650,9 +689,9 @@ zabbix_export:
                   value: temperature
               trigger_prototypes:
                 - uuid: 4d961249b1124f828846e7f165a48e1b
-                  expression: 'avg(/Mikrotik R11e-LTE SNMP.3/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)>{$TEMP_CRIT:"Device"}'
+                  expression: 'avg(/Mikrotik R11e-LTE/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)>{$TEMP_CRIT:"Device"}'
                   recovery_mode: RECOVERY_EXPRESSION
-                  recovery_expression: 'max(/Mikrotik R11e-LTE SNMP.3/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)<{$TEMP_CRIT:"Device"}-3'
+                  recovery_expression: 'max(/Mikrotik R11e-LTE/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)<{$TEMP_CRIT:"Device"}-3'
                   name: 'Device: Temperature is above critical threshold'
                   event_name: 'Device: Temperature is above critical threshold: >{$TEMP_CRIT:"Device"}'
                   opdata: 'Current value: {ITEM.LASTVALUE1}'
@@ -664,9 +703,9 @@ zabbix_export:
                     - tag: scope
                       value: performance
                 - uuid: dda0447a66e344828ff51d63fcc8be24
-                  expression: 'avg(/Mikrotik R11e-LTE SNMP.3/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)>{$TEMP_WARN:"Device"}'
+                  expression: 'avg(/Mikrotik R11e-LTE/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)>{$TEMP_WARN:"Device"}'
                   recovery_mode: RECOVERY_EXPRESSION
-                  recovery_expression: 'max(/Mikrotik R11e-LTE SNMP.3/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)<{$TEMP_WARN:"Device"}-3'
+                  recovery_expression: 'max(/Mikrotik R11e-LTE/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)<{$TEMP_WARN:"Device"}-3'
                   name: 'Device: Temperature is above warning threshold'
                   event_name: 'Device: Temperature is above warning threshold: >{$TEMP_WARN:"Device"}'
                   opdata: 'Current value: {ITEM.LASTVALUE1}'
@@ -674,17 +713,17 @@ zabbix_export:
                   description: 'This trigger uses temperature sensor values as well as temperature sensor status if available.'
                   dependencies:
                     - name: 'Device: Temperature is above critical threshold'
-                      expression: 'avg(/Mikrotik R11e-LTE SNMP.3/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)>{$TEMP_CRIT:"Device"}'
-                      recovery_expression: 'max(/Mikrotik R11e-LTE SNMP.3/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)<{$TEMP_CRIT:"Device"}-3'
+                      expression: 'avg(/Mikrotik R11e-LTE/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)>{$TEMP_CRIT:"Device"}'
+                      recovery_expression: 'max(/Mikrotik R11e-LTE/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)<{$TEMP_CRIT:"Device"}-3'
                   tags:
                     - tag: scope
                       value: availability
                     - tag: scope
                       value: performance
                 - uuid: b2bcda692cc34cd3954e73c0387fb92e
-                  expression: 'avg(/Mikrotik R11e-LTE SNMP.3/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)<{$TEMP_CRIT_LOW:"Device"}'
+                  expression: 'avg(/Mikrotik R11e-LTE/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)<{$TEMP_CRIT_LOW:"Device"}'
                   recovery_mode: RECOVERY_EXPRESSION
-                  recovery_expression: 'min(/Mikrotik R11e-LTE SNMP.3/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)>{$TEMP_CRIT_LOW:"Device"}+3'
+                  recovery_expression: 'min(/Mikrotik R11e-LTE/sensor.temp.value[mtxrHlTemperature.{#SNMPINDEX}],5m)>{$TEMP_CRIT_LOW:"Device"}+3'
                   name: 'Device: Temperature is too low'
                   event_name: 'Device: Temperature is too low: <{$TEMP_CRIT_LOW:"Device"}'
                   opdata: 'Current value: {ITEM.LASTVALUE1}'
@@ -942,9 +981,9 @@ zabbix_export:
                   value: '{#IFNAME}'
               trigger_prototypes:
                 - uuid: 37590e55024b44cfabf9fde5c944b08b
-                  expression: '{$IFCONTROL:"{#IFNAME}"}=1 and last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}])=2 and (last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}],#1)<>last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}],#2))'
+                  expression: '{$IFCONTROL:"{#IFNAME}"}=1 and last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}])=2 and (last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}],#1)<>last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}],#2))'
                   recovery_mode: RECOVERY_EXPRESSION
-                  recovery_expression: 'last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2 or {$IFCONTROL:"{#IFNAME}"}=0'
+                  recovery_expression: 'last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2 or {$IFCONTROL:"{#IFNAME}"}=0'
                   name: 'Interface {#IFNAME}({#IFALIAS}): Link down'
                   opdata: 'Current state: {ITEM.LASTVALUE1}'
                   priority: AVERAGE
@@ -988,21 +1027,21 @@ zabbix_export:
           trigger_prototypes:
             - uuid: e33e233ddf1e44c08a5d23bb5deff388
               expression: |
-                change(/Mikrotik R11e-LTE SNMP.3/net.if.speed[ifHighSpeed.{#SNMPINDEX}])<0 and last(/Mikrotik R11e-LTE SNMP.3/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0
+                change(/Mikrotik R11e-LTE/net.if.speed[ifHighSpeed.{#SNMPINDEX}])<0 and last(/Mikrotik R11e-LTE/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0
                 and (
-                last(/Mikrotik R11e-LTE SNMP.3/net.if.type[ifType.{#SNMPINDEX}])=6 or
-                last(/Mikrotik R11e-LTE SNMP.3/net.if.type[ifType.{#SNMPINDEX}])=7 or
-                last(/Mikrotik R11e-LTE SNMP.3/net.if.type[ifType.{#SNMPINDEX}])=11 or
-                last(/Mikrotik R11e-LTE SNMP.3/net.if.type[ifType.{#SNMPINDEX}])=62 or
-                last(/Mikrotik R11e-LTE SNMP.3/net.if.type[ifType.{#SNMPINDEX}])=69 or
-                last(/Mikrotik R11e-LTE SNMP.3/net.if.type[ifType.{#SNMPINDEX}])=117
+                last(/Mikrotik R11e-LTE/net.if.type[ifType.{#SNMPINDEX}])=6 or
+                last(/Mikrotik R11e-LTE/net.if.type[ifType.{#SNMPINDEX}])=7 or
+                last(/Mikrotik R11e-LTE/net.if.type[ifType.{#SNMPINDEX}])=11 or
+                last(/Mikrotik R11e-LTE/net.if.type[ifType.{#SNMPINDEX}])=62 or
+                last(/Mikrotik R11e-LTE/net.if.type[ifType.{#SNMPINDEX}])=69 or
+                last(/Mikrotik R11e-LTE/net.if.type[ifType.{#SNMPINDEX}])=117
                 )
                 and
-                (last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2)
+                (last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2)
               recovery_mode: RECOVERY_EXPRESSION
               recovery_expression: |
-                (change(/Mikrotik R11e-LTE SNMP.3/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0 and last(/Mikrotik R11e-LTE SNMP.3/net.if.speed[ifHighSpeed.{#SNMPINDEX}],#2)>0) or
-                (last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}])=2)
+                (change(/Mikrotik R11e-LTE/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0 and last(/Mikrotik R11e-LTE/net.if.speed[ifHighSpeed.{#SNMPINDEX}],#2)>0) or
+                (last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}])=2)
               name: 'Interface {#IFNAME}({#IFALIAS}): Ethernet has changed to lower speed than it was before'
               opdata: 'Current reported speed: {ITEM.LASTVALUE1}'
               priority: INFO
@@ -1010,20 +1049,20 @@ zabbix_export:
               manual_close: 'YES'
               dependencies:
                 - name: 'Interface {#IFNAME}({#IFALIAS}): Link down'
-                  expression: '{$IFCONTROL:"{#IFNAME}"}=1 and last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}])=2 and (last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}],#1)<>last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}],#2))'
-                  recovery_expression: 'last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2 or {$IFCONTROL:"{#IFNAME}"}=0'
+                  expression: '{$IFCONTROL:"{#IFNAME}"}=1 and last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}])=2 and (last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}],#1)<>last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}],#2))'
+                  recovery_expression: 'last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2 or {$IFCONTROL:"{#IFNAME}"}=0'
               tags:
                 - tag: scope
                   value: performance
             - uuid: 286bae94996a45a19ab34a17f5344be6
               expression: |
-                (avg(/Mikrotik R11e-LTE SNMP.3/net.if.in[ifHCInOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX:"{#IFNAME}"}/100)*last(/Mikrotik R11e-LTE SNMP.3/net.if.speed[ifHighSpeed.{#SNMPINDEX}]) or
-                avg(/Mikrotik R11e-LTE SNMP.3/net.if.out[ifHCOutOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX:"{#IFNAME}"}/100)*last(/Mikrotik R11e-LTE SNMP.3/net.if.speed[ifHighSpeed.{#SNMPINDEX}])) and
-                last(/Mikrotik R11e-LTE SNMP.3/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0
+                (avg(/Mikrotik R11e-LTE/net.if.in[ifHCInOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX:"{#IFNAME}"}/100)*last(/Mikrotik R11e-LTE/net.if.speed[ifHighSpeed.{#SNMPINDEX}]) or
+                avg(/Mikrotik R11e-LTE/net.if.out[ifHCOutOctets.{#SNMPINDEX}],15m)>({$IF.UTIL.MAX:"{#IFNAME}"}/100)*last(/Mikrotik R11e-LTE/net.if.speed[ifHighSpeed.{#SNMPINDEX}])) and
+                last(/Mikrotik R11e-LTE/net.if.speed[ifHighSpeed.{#SNMPINDEX}])>0
               recovery_mode: RECOVERY_EXPRESSION
               recovery_expression: |
-                avg(/Mikrotik R11e-LTE SNMP.3/net.if.in[ifHCInOctets.{#SNMPINDEX}],15m)<(({$IF.UTIL.MAX:"{#IFNAME}"}-3)/100)*last(/Mikrotik R11e-LTE SNMP.3/net.if.speed[ifHighSpeed.{#SNMPINDEX}]) and
-                avg(/Mikrotik R11e-LTE SNMP.3/net.if.out[ifHCOutOctets.{#SNMPINDEX}],15m)<(({$IF.UTIL.MAX:"{#IFNAME}"}-3)/100)*last(/Mikrotik R11e-LTE SNMP.3/net.if.speed[ifHighSpeed.{#SNMPINDEX}])
+                avg(/Mikrotik R11e-LTE/net.if.in[ifHCInOctets.{#SNMPINDEX}],15m)<(({$IF.UTIL.MAX:"{#IFNAME}"}-3)/100)*last(/Mikrotik R11e-LTE/net.if.speed[ifHighSpeed.{#SNMPINDEX}]) and
+                avg(/Mikrotik R11e-LTE/net.if.out[ifHCOutOctets.{#SNMPINDEX}],15m)<(({$IF.UTIL.MAX:"{#IFNAME}"}-3)/100)*last(/Mikrotik R11e-LTE/net.if.speed[ifHighSpeed.{#SNMPINDEX}])
               name: 'Interface {#IFNAME}({#IFALIAS}): High bandwidth usage'
               event_name: 'Interface {#IFNAME}({#IFALIAS}): High bandwidth usage (>{$IF.UTIL.MAX:"{#IFNAME}"}%)'
               opdata: 'In: {ITEM.LASTVALUE1}, out: {ITEM.LASTVALUE3}, speed: {ITEM.LASTVALUE2}'
@@ -1032,19 +1071,19 @@ zabbix_export:
               manual_close: 'YES'
               dependencies:
                 - name: 'Interface {#IFNAME}({#IFALIAS}): Link down'
-                  expression: '{$IFCONTROL:"{#IFNAME}"}=1 and last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}])=2 and (last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}],#1)<>last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}],#2))'
-                  recovery_expression: 'last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2 or {$IFCONTROL:"{#IFNAME}"}=0'
+                  expression: '{$IFCONTROL:"{#IFNAME}"}=1 and last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}])=2 and (last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}],#1)<>last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}],#2))'
+                  recovery_expression: 'last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2 or {$IFCONTROL:"{#IFNAME}"}=0'
               tags:
                 - tag: scope
                   value: performance
             - uuid: 9703d320394b49b69ff6ad16ed47db3b
               expression: |
-                min(/Mikrotik R11e-LTE SNMP.3/net.if.in.errors[ifInErrors.{#SNMPINDEX}],5m)>{$IF.ERRORS.WARN:"{#IFNAME}"}
-                or min(/Mikrotik R11e-LTE SNMP.3/net.if.out.errors[ifOutErrors.{#SNMPINDEX}],5m)>{$IF.ERRORS.WARN:"{#IFNAME}"}
+                min(/Mikrotik R11e-LTE/net.if.in.errors[ifInErrors.{#SNMPINDEX}],5m)>{$IF.ERRORS.WARN:"{#IFNAME}"}
+                or min(/Mikrotik R11e-LTE/net.if.out.errors[ifOutErrors.{#SNMPINDEX}],5m)>{$IF.ERRORS.WARN:"{#IFNAME}"}
               recovery_mode: RECOVERY_EXPRESSION
               recovery_expression: |
-                max(/Mikrotik R11e-LTE SNMP.3/net.if.in.errors[ifInErrors.{#SNMPINDEX}],5m)<{$IF.ERRORS.WARN:"{#IFNAME}"}*0.8
-                and max(/Mikrotik R11e-LTE SNMP.3/net.if.out.errors[ifOutErrors.{#SNMPINDEX}],5m)<{$IF.ERRORS.WARN:"{#IFNAME}"}*0.8
+                max(/Mikrotik R11e-LTE/net.if.in.errors[ifInErrors.{#SNMPINDEX}],5m)<{$IF.ERRORS.WARN:"{#IFNAME}"}*0.8
+                and max(/Mikrotik R11e-LTE/net.if.out.errors[ifOutErrors.{#SNMPINDEX}],5m)<{$IF.ERRORS.WARN:"{#IFNAME}"}*0.8
               name: 'Interface {#IFNAME}({#IFALIAS}): High error rate'
               event_name: 'Interface {#IFNAME}({#IFALIAS}): High error rate (>{$IF.ERRORS.WARN:"{#IFNAME}"} for 5m)'
               opdata: 'errors in: {ITEM.LASTVALUE1}, errors out: {ITEM.LASTVALUE2}'
@@ -1053,8 +1092,8 @@ zabbix_export:
               manual_close: 'YES'
               dependencies:
                 - name: 'Interface {#IFNAME}({#IFALIAS}): Link down'
-                  expression: '{$IFCONTROL:"{#IFNAME}"}=1 and last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}])=2 and (last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}],#1)<>last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}],#2))'
-                  recovery_expression: 'last(/Mikrotik R11e-LTE SNMP.3/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2 or {$IFCONTROL:"{#IFNAME}"}=0'
+                  expression: '{$IFCONTROL:"{#IFNAME}"}=1 and last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}])=2 and (last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}],#1)<>last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}],#2))'
+                  recovery_expression: 'last(/Mikrotik R11e-LTE/net.if.status[ifOperStatus.{#SNMPINDEX}])<>2 or {$IFCONTROL:"{#IFNAME}"}=0'
               tags:
                 - tag: scope
                   value: availability
@@ -1067,37 +1106,37 @@ zabbix_export:
                 - drawtype: GRADIENT_LINE
                   color: 199C0D
                   item:
-                    host: 'Mikrotik R11e-LTE SNMP.3'
+                    host: 'Mikrotik R11e-LTE'
                     key: 'net.if.in[ifHCInOctets.{#SNMPINDEX}]'
                 - sortorder: '1'
                   drawtype: BOLD_LINE
                   color: F63100
                   item:
-                    host: 'Mikrotik R11e-LTE SNMP.3'
+                    host: 'Mikrotik R11e-LTE'
                     key: 'net.if.out[ifHCOutOctets.{#SNMPINDEX}]'
                 - sortorder: '2'
                   color: 00611C
                   yaxisside: RIGHT
                   item:
-                    host: 'Mikrotik R11e-LTE SNMP.3'
+                    host: 'Mikrotik R11e-LTE'
                     key: 'net.if.out.errors[ifOutErrors.{#SNMPINDEX}]'
                 - sortorder: '3'
                   color: F7941D
                   yaxisside: RIGHT
                   item:
-                    host: 'Mikrotik R11e-LTE SNMP.3'
+                    host: 'Mikrotik R11e-LTE'
                     key: 'net.if.in.errors[ifInErrors.{#SNMPINDEX}]'
                 - sortorder: '4'
                   color: FC6EA3
                   yaxisside: RIGHT
                   item:
-                    host: 'Mikrotik R11e-LTE SNMP.3'
+                    host: 'Mikrotik R11e-LTE'
                     key: 'net.if.out.discards[ifOutDiscards.{#SNMPINDEX}]'
                 - sortorder: '5'
                   color: 6C59DC
                   yaxisside: RIGHT
                   item:
-                    host: 'Mikrotik R11e-LTE SNMP.3'
+                    host: 'Mikrotik R11e-LTE'
                     key: 'net.if.in.discards[ifInDiscards.{#SNMPINDEX}]'
         - uuid: 202abd2c6a5a44a395d3fc94ede807c5
           name: 'Storage discovery'
@@ -1179,8 +1218,8 @@ zabbix_export:
           trigger_prototypes:
             - uuid: 039d94c24ede4e039c889e10981f000e
               expression: |
-                last(/Mikrotik R11e-LTE SNMP.3/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}])>{$VFS.FS.PUSED.MAX.CRIT:"Disk-{#SNMPINDEX}"} and
-                ((last(/Mikrotik R11e-LTE SNMP.3/vfs.fs.total[hrStorageSize.{#SNMPINDEX}])-last(/Mikrotik R11e-LTE SNMP.3/vfs.fs.used[hrStorageSize.{#SNMPINDEX}]))<{$VFS.FS.FREE.MIN.CRIT:"Disk-{#SNMPINDEX}"} or timeleft(/Mikrotik R11e-LTE SNMP.3/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}],1h,100)<1d)
+                last(/Mikrotik R11e-LTE/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}])>{$VFS.FS.PUSED.MAX.CRIT:"Disk-{#SNMPINDEX}"} and
+                ((last(/Mikrotik R11e-LTE/vfs.fs.total[hrStorageSize.{#SNMPINDEX}])-last(/Mikrotik R11e-LTE/vfs.fs.used[hrStorageSize.{#SNMPINDEX}]))<{$VFS.FS.FREE.MIN.CRIT:"Disk-{#SNMPINDEX}"} or timeleft(/Mikrotik R11e-LTE/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}],1h,100)<1d)
               name: 'Disk-{#SNMPINDEX}: Disk space is critically low'
               event_name: 'Disk-{#SNMPINDEX}: Disk space is critically low (used > {$VFS.FS.PUSED.MAX.CRIT:"Disk-{#SNMPINDEX}"}%)'
               opdata: 'Space used: {ITEM.LASTVALUE3} of {ITEM.LASTVALUE2} ({ITEM.LASTVALUE1})'
@@ -1198,8 +1237,8 @@ zabbix_export:
                   value: capacity
             - uuid: 9e90110524a64f18af8b601ee01888c0
               expression: |
-                last(/Mikrotik R11e-LTE SNMP.3/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}])>{$VFS.FS.PUSED.MAX.WARN:"Disk-{#SNMPINDEX}"} and
-                ((last(/Mikrotik R11e-LTE SNMP.3/vfs.fs.total[hrStorageSize.{#SNMPINDEX}])-last(/Mikrotik R11e-LTE SNMP.3/vfs.fs.used[hrStorageSize.{#SNMPINDEX}]))<{$VFS.FS.FREE.MIN.WARN:"Disk-{#SNMPINDEX}"} or timeleft(/Mikrotik R11e-LTE SNMP.3/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}],1h,100)<1d)
+                last(/Mikrotik R11e-LTE/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}])>{$VFS.FS.PUSED.MAX.WARN:"Disk-{#SNMPINDEX}"} and
+                ((last(/Mikrotik R11e-LTE/vfs.fs.total[hrStorageSize.{#SNMPINDEX}])-last(/Mikrotik R11e-LTE/vfs.fs.used[hrStorageSize.{#SNMPINDEX}]))<{$VFS.FS.FREE.MIN.WARN:"Disk-{#SNMPINDEX}"} or timeleft(/Mikrotik R11e-LTE/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}],1h,100)<1d)
               name: 'Disk-{#SNMPINDEX}: Disk space is low'
               event_name: 'Disk-{#SNMPINDEX}: Disk space is low (used > {$VFS.FS.PUSED.MAX.WARN:"Disk-{#SNMPINDEX}"}%)'
               opdata: 'Space used: {ITEM.LASTVALUE3} of {ITEM.LASTVALUE2} ({ITEM.LASTVALUE1})'
@@ -1213,8 +1252,8 @@ zabbix_export:
               dependencies:
                 - name: 'Disk-{#SNMPINDEX}: Disk space is critically low'
                   expression: |
-                    last(/Mikrotik R11e-LTE SNMP.3/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}])>{$VFS.FS.PUSED.MAX.CRIT:"Disk-{#SNMPINDEX}"} and
-                    ((last(/Mikrotik R11e-LTE SNMP.3/vfs.fs.total[hrStorageSize.{#SNMPINDEX}])-last(/Mikrotik R11e-LTE SNMP.3/vfs.fs.used[hrStorageSize.{#SNMPINDEX}]))<{$VFS.FS.FREE.MIN.CRIT:"Disk-{#SNMPINDEX}"} or timeleft(/Mikrotik R11e-LTE SNMP.3/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}],1h,100)<1d)
+                    last(/Mikrotik R11e-LTE/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}])>{$VFS.FS.PUSED.MAX.CRIT:"Disk-{#SNMPINDEX}"} and
+                    ((last(/Mikrotik R11e-LTE/vfs.fs.total[hrStorageSize.{#SNMPINDEX}])-last(/Mikrotik R11e-LTE/vfs.fs.used[hrStorageSize.{#SNMPINDEX}]))<{$VFS.FS.FREE.MIN.CRIT:"Disk-{#SNMPINDEX}"} or timeleft(/Mikrotik R11e-LTE/vfs.fs.pused[hrStorageSize.{#SNMPINDEX}],1h,100)<1d)
               tags:
                 - tag: scope
                   value: availability
@@ -1232,17 +1271,19 @@ zabbix_export:
                   calc_fnc: LAST
                   type: GRAPH_SUM
                   item:
-                    host: 'Mikrotik R11e-LTE SNMP.3'
+                    host: 'Mikrotik R11e-LTE'
                     key: 'vfs.fs.total[hrStorageSize.{#SNMPINDEX}]'
                 - sortorder: '1'
                   color: C80000
                   calc_fnc: LAST
                   item:
-                    host: 'Mikrotik R11e-LTE SNMP.3'
+                    host: 'Mikrotik R11e-LTE'
                     key: 'vfs.fs.used[hrStorageSize.{#SNMPINDEX}]'
       tags:
         - tag: class
           value: network
+        - tag: target
+          value: lte
         - tag: target
           value: mikrotik
       macros:
@@ -1261,9 +1302,6 @@ zabbix_export:
         - macro: '{$IFNAME.LTEMODEM.MATCHES}'
           value: ^lte
           description: 'This macro is used in LTE modem discovery. It can be overridden on the host.'
-        - macro: '{$IFNAME.WIFI.MATCHES}'
-          value: WIFI
-          description: 'This macro is used in CAPsMAN AP channel discovery. It can be overridden on the host level.'
         - macro: '{$LTEMODEM.RSRP.MIN.WARN}'
           value: '-100'
           description: 'The LTE modem RSRP minimum value for warning trigger expression.'
@@ -1276,6 +1314,9 @@ zabbix_export:
         - macro: '{$LTEMODEM.SINR.MIN.WARN}'
           value: '0'
           description: 'The LTE modem SINR minimum value for warning trigger expression.'
+        - macro: '{$LTESNMPINDEX}'
+          value: '3'
+          description: 'Указываем SNMPINDEX lte модема на уровне хоста, чтобы параметры LTE считывались сразу на уровне Items, без использования LLD. Обычно значение 3, но бывает 1 и 2.'
         - macro: '{$MEMORY.UTIL.MAX}'
           value: '90'
         - macro: '{$NET.IF.IFADMINSTATUS.MATCHES}'
@@ -1318,10 +1359,6 @@ zabbix_export:
           value: '50'
         - macro: '{$TEMP_WARN:"CPU"}'
           value: '70'
-        - macro: '{$VFS.FS.PUSED.MAX.CRIT}'
-          value: '90'
-        - macro: '{$VFS.FS.PUSED.MAX.WARN}'
-          value: '80'
       dashboards:
         - uuid: d7d5a08e90764ae3b88b6f0494d8924b
           name: 'Network interfaces'
@@ -1337,7 +1374,7 @@ zabbix_export:
                     - type: GRAPH_PROTOTYPE
                       name: graphid
                       value:
-                        host: 'Mikrotik R11e-LTE SNMP.3'
+                        host: 'Mikrotik R11e-LTE'
                         name: 'Interface {#IFNAME}({#IFALIAS}): Network traffic'
       valuemaps:
         - uuid: 88b9bced5a1f438c81387b0f4b8a75fb
@@ -1948,7 +1985,7 @@ zabbix_export:
               newvalue: unknown
   triggers:
     - uuid: 8a208793f81c4ab29b4db3f3ac5cd897
-      expression: '(last(/Mikrotik R11e-LTE SNMP.3/system.hw.uptime[hrSystemUptime.0])>0 and last(/Mikrotik R11e-LTE SNMP.3/system.hw.uptime[hrSystemUptime.0])<10m) or (last(/Mikrotik R11e-LTE SNMP.3/system.hw.uptime[hrSystemUptime.0])=0 and last(/Mikrotik R11e-LTE SNMP.3/system.net.uptime[sysUpTime.0])<10m)'
+      expression: '(last(/Mikrotik R11e-LTE/system.hw.uptime[hrSystemUptime.0])>0 and last(/Mikrotik R11e-LTE/system.hw.uptime[hrSystemUptime.0])<10m) or (last(/Mikrotik R11e-LTE/system.hw.uptime[hrSystemUptime.0])=0 and last(/Mikrotik R11e-LTE/system.net.uptime[sysUpTime.0])<10m)'
       name: 'LTE SXT/LHG: Объект перезагужен'
       event_name: 'LTE SXT/LHG: {HOST.NAME} был перезагружен (uptime < 10 минут)'
       priority: WARNING
@@ -1956,7 +1993,7 @@ zabbix_export:
       manual_close: 'YES'
       dependencies:
         - name: 'LTE SXT/LHG: Проблемы с SNMP'
-          expression: 'max(/Mikrotik R11e-LTE SNMP.3/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+          expression: 'max(/Mikrotik R11e-LTE/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
       tags:
         - tag: scope
           value: notice
@@ -1968,13 +2005,13 @@ zabbix_export:
           yaxisside: RIGHT
           calc_fnc: ALL
           item:
-            host: 'Mikrotik R11e-LTE SNMP.3'
+            host: 'Mikrotik R11e-LTE'
             key: icmppingsec
         - sortorder: '1'
           color: FF0000
           calc_fnc: ALL
           item:
-            host: 'Mikrotik R11e-LTE SNMP.3'
+            host: 'Mikrotik R11e-LTE'
             key: icmppingloss
     - uuid: c22f4bc276eb4ec8813b02937a9cbb9a
       name: 'LTE Parametrs'
@@ -1982,27 +2019,27 @@ zabbix_export:
         - color: 1A7C11
           calc_fnc: ALL
           item:
-            host: 'Mikrotik R11e-LTE SNMP.3'
+            host: 'Mikrotik R11e-LTE'
             key: sxt.lte.rsrp
         - sortorder: '1'
           color: '274482'
           yaxisside: RIGHT
           calc_fnc: ALL
           item:
-            host: 'Mikrotik R11e-LTE SNMP.3'
+            host: 'Mikrotik R11e-LTE'
             key: sxt.lte.rsrq
         - sortorder: '2'
           color: FF0000
           yaxisside: RIGHT
           calc_fnc: ALL
           item:
-            host: 'Mikrotik R11e-LTE SNMP.3'
+            host: 'Mikrotik R11e-LTE'
             key: sxt.lte.sinr
         - sortorder: '3'
           color: FFBF00
           calc_fnc: ALL
           item:
-            host: 'Mikrotik R11e-LTE SNMP.3'
+            host: 'Mikrotik R11e-LTE'
             key: sxt.lte.rssi
     - uuid: 236abf9393ee41b9a3e2a1ee9acfeb8f
       name: 'Mikrotik: Memory utilization'
@@ -2012,7 +2049,7 @@ zabbix_export:
         - drawtype: GRADIENT_LINE
           color: 199C0D
           item:
-            host: 'Mikrotik R11e-LTE SNMP.3'
+            host: 'Mikrotik R11e-LTE'
             key: 'vm.memory.util[memoryUsedPercentage.Memory]'
     - uuid: b7339ca27bdf4ab794e4c71323ff21f4
       name: 'System and hardware uptime'
@@ -2020,12 +2057,12 @@ zabbix_export:
         - color: 1A7C11
           calc_fnc: ALL
           item:
-            host: 'Mikrotik R11e-LTE SNMP.3'
+            host: 'Mikrotik R11e-LTE'
             key: 'system.hw.uptime[hrSystemUptime.0]'
         - sortorder: '1'
           color: '274482'
           yaxisside: RIGHT
           calc_fnc: ALL
           item:
-            host: 'Mikrotik R11e-LTE SNMP.3'
+            host: 'Mikrotik R11e-LTE'
             key: 'system.net.uptime[sysUpTime.0]'
